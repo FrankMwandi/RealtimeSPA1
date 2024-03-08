@@ -8,15 +8,65 @@ services:
       - .:/home/mwene/DjangoProjects/march1
     ports:
       - 8000:8000
+    environment:
+      DEBUG: "True"
+      #ALLOWED_HOSTS: "hello.localhost,127.0.0.1"
+      SECRET_KEY: IXsOuIz95lyoyDNk5v6sDdi4j4W9WSfAaUVQG3hHMvfAHMkPJiherKE-mG4blHv_8-w
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DOMAIN: hello.localhost
+      DOMAIN_URL: http://hello.localhost
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEFAULT_FROM_EMAIL: no-reply@hello.localhost
+      STATIC_URL: /static/
+      STATIC_ROOT: static
+      MEDIA_URL: /media/
+      EMAIL_HOST: mailhog
+      EMAIL_USE_TLS: "False"
+      EMAIL_USE_SSL: "False"
+      EMAIL_PORT: 1025
+      EMAIL_USER:
+      EMAIL_PASSWORD:
+    expose:
+      - 8000
     depends_on:
       - db
+      - redis
     
   db:
     image: postgres:13
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - 'POSTGRES_HOST_AUTH_METHOD=trust'
+      - POSTGRES_HOST_AUTH_METHOD=trust
+
+  redis:
+    image: redis:alpine
+    expose:
+      - 6379
+
+  caddy:
+    image: caddy:alpine
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy_data:/data
+    depends_on:
+      - web
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    expose:
+      - 1025
+      - 8025
 
 volumes:
   postgres_data:
+  caddy_data:
